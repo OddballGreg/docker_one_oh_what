@@ -1,0 +1,15 @@
+FROM ruby:2.7 AS develop
+RUN apt-get install curl gcc
+RUN mkdir -p /src/app
+WORKDIR /src/app
+COPY arbitrary_ruby_application.rb .
+CMD ruby arbitrary_ruby_application.rb
+
+FROM ruby:2.7-alpine AS production
+RUN addgroup -g 1000 -S ruby && \
+    adduser -u 1000 -S ruby -G ruby
+USER ruby
+COPY --from=develop /src /src
+WORKDIR /src/app
+EXPOSE 3000
+CMD ruby arbitrary_ruby_application.rb

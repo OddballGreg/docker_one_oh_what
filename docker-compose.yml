@@ -1,0 +1,33 @@
+version: '3.5'
+services:
+  arbruba:
+    build: 
+      context: .
+      target: production
+      dockerfile: Better-Dockerfile
+    image: arbruba:latest
+    container_name: our-second-container
+    ports:
+      - 80:80
+    networks:
+      our-second-network:
+    # docker-compose v 2.4 config
+    # mem_limit: 300m
+    # mem_reservation: 100m
+
+    # docker swarm only config
+    # resources:
+    #   limits:
+    #     memory: 300m
+    #   reservations:
+    #     memory: 100m
+  redis:
+    image: redis:latest
+    networks:
+      our-second-network:
+
+networks:
+  our-second-network:
+
+volumes:
+  our-second-volume:

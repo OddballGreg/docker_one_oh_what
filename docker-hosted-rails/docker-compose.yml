@@ -1,0 +1,63 @@
+version: "3.5"
+services:
+  server-app:
+    build: 
+      context: .
+      target: develop
+    command: /src/app/bin rails s
+    environment:
+      SSH_AUTH_SOCK: $SSH_AUTH_SOCK
+    volumes:
+      - .:/src/app
+      - box:/box:delegated
+    networks:
+      server-net:
+    tty: true
+    stdin_open: true
+    extra_hosts:
+      - rubygems.org:151.101.64.70
+    env_file: .env
+    environment:
+      - SECRET_KEY_BASE=awga4a4hae4ha4ha4h4ah4h
+    depends_on:
+      - server-db
+      - server-redis
+  server-sidekiq:
+    build: .
+    command: 'bundle exec sidekiq'
+    volumes:
+      - .:/src/app
+      - box:/box:delegated
+    networks:
+      server-net:
+    env_file: .env
+    environment:
+      - SECRET_KEY_BASE=awga4a4hae4ha4ha4h4ah4h
+    depends_on:
+      - server-db
+      - server-redis
+  server-redis:
+    image: 'redis:alpine'
+    command: 'redis-server'
+    ports:
+        - '6379'
+    volumes:
+        - 'redis:/data'
+    networks:
+      server-net:
+  server-db:
+    image: postgres:11.2-alpine
+    volumes:
+      - server-db:/var/lib/postgresql/data
+    networks:
+      server-net:
+    ports:
+      - '5432'
+
+networks:
+  server-net:
+
+volumes:
+    redis:
+    server-db:
+    box:
