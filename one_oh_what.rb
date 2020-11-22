@@ -1,4 +1,12 @@
-def sputs(string)
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+  gem 'pry'
+  gem 'colorize'
+end
+
+def sputs(string='')
   (string + "\n").chars.each do |char|
     sleep $typing_speed.call
     print char
@@ -10,6 +18,14 @@ def sprint(string)
     sleep $typing_speed.call
     print char
   end
+end
+
+def run_command(string)
+  sputs
+  sputs "-"*20
+  sputs "`#{string}`".blue
+  system(string, out: STDOUT)
+  sputs "-"*20
 end
 
 require 'pry'
@@ -27,49 +43,40 @@ def draw_box(string)
   string = string.to_s
   puts initial_padding + '#' * (string.size + 8)
   puts initial_padding + '#   ' + (' ' * string.size) + '   #'
-  puts initial_padding + '#   ' + string + '   #'
+  puts initial_padding + '#   ' + string.underline + '   #'
   puts initial_padding + '#   ' + (' ' * string.size) + '   #'
   puts initial_padding + '#' * (string.size + 8)
   
 end
 
-$typing_speed = proc { rand(0.05..0.2) }
+$typing_speed = proc { rand(0.05..0.06) }
 
 def continue?
   puts
-  sputs("Continue?")
+  sputs("Continue?".blink)
   gets
 end
 
 draw_box("Docker One Oh What?")
 continue?
 
-sputs "Oh hey? How's it going? You going to teach some docker to these fellows?"
-sputs "1. Yes, but type faster than that please"
-sputs "2. No"
-sputs "3. REEEEEE"
-
-gets
-puts
-
-$typing_speed = proc { rand(0.05..0.06) }
-
-sputs 'Got it. Lets get teaching. ;)'
-
 # Part one introduction
 
 draw_box("What is docker?")
 
-sprint '- Containerization Protocol'
-sprint '  - Lightweight'
-sprint '  - Fast'
-sprint '  - Easy To Use For:'
-sprint '    - Devops & Deployment'
-sprint '    - Development'
-sprint '    - "Infrastructure As Code"'
-sprint '  - Important Note: Not a VM'
-sprint '  - Probably the protocal underpinning the majority of Kubernetes clusters'
-sprint '- "Well we\'ll just deploy your machine then!"'
+sputs '- Containerization Protocol'
+sputs '  - Lightweight'
+sputs '  - Fast'
+gets
+sputs '  - Easy To Use For:'
+sputs '    - Devops & Deployment'
+sputs '    - Development'
+sputs '    - "Infrastructure As Code"'
+gets
+sputs '  - Important Note: Not a VM'
+sputs '  - Probably the protocal underpinning the majority of Kubernetes clusters'
+gets
+sputs '- "Well we\'ll just deploy your machine then!"'
 continue?
 
 # # Part two technicals and usage
@@ -77,8 +84,8 @@ draw_box("Key docker concepts")
 
 sputs '- Networking'
 sputs ' - Creates actual network adapters on your host'
-puts '`docker network create our-first-network`'
-puts '`docker network ls | grep our-first-network`'
+run_command 'docker network create our-first-network'
+run_command 'docker network ls | grep our-first-network'
 gets
 sputs '- Volumes'
 sputs ' - Creates non host mounted volumes for data permanency'
@@ -113,8 +120,6 @@ continue?
 
 # Part three better with docker compose
 sprint 'This all sounds like a lot of work to control... What are we gonna do about that?'
-puts
-sputs '1. Not even bother to give multiple options, because there\'s already a solution...'
 puts
 
 draw_box('docker-compose')
