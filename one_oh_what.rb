@@ -20,11 +20,15 @@ def sprint(string)
   end
 end
 
-def run_command(string)
+def run_command(string, actually_run=nil)
   sputs
   sputs "-"*20
   sputs "`#{string}`".blue
-  system(string, out: STDOUT)
+  if actually_run
+    system(actually_run, out: STDOUT)
+  else
+    system(string, out: STDOUT)
+  end
   sputs "-"*20
 end
 
@@ -67,15 +71,15 @@ draw_box("What is docker?")
 sputs '- Containerization Protocol'
 sputs '  - Lightweight'
 sputs '  - Fast'
-gets
+continue?
 sputs '  - Easy To Use For:'
 sputs '    - Devops & Deployment'
 sputs '    - Development'
 sputs '    - "Infrastructure As Code"'
-gets
+continue?
 sputs '  - Important Note: Not a VM'
-sputs '  - Probably the protocal underpinning the majority of Kubernetes clusters'
-gets
+sputs '  - Probably the protocol underpinning the majority of Kubernetes clusters'
+continue?
 sputs '- "Well we\'ll just deploy your machine then!"'
 continue?
 
@@ -86,34 +90,30 @@ sputs '- Networking'
 sputs ' - Creates actual network adapters on your host'
 run_command 'docker network create our-first-network'
 run_command 'docker network ls | grep our-first-network'
-gets
+continue?
 sputs '- Volumes'
 sputs ' - Creates non host mounted volumes for data permanency'
-puts '`docker volume create our-first-volume`'
-puts '`docker volume ls | grep our-first-volume`'
-gets
+run_command('docker volume create our-first-volume')
+run_command('docker volume ls | grep our-first-volume')
+continue?
 sputs '- Images'
-sputs '`cat Dockerfile`'
-puts
-puts '----- Dockerfile -------'
-puts `cat Dockerfile`
-puts '----- \Dockerfile -------'
-puts
-gets
-puts '`docker build . -t our-first-image:latest`'
-puts '`docker image ls | grep our-first-image`'
-gets
+run_command('cat Dockerfile')
+continue?
+run_command('docker build . -t our-first-image:latest')
+run_command('docker image ls | grep our-first-image')
+continue?
 sputs '- Containers'
-puts '`docker run -d --name our-first-container our-first-image`'
-puts '`docker ps | grep our-first-container`'
-puts '`docker logs our-first-container`'
-puts '`docker exec -it our-first-container sh`'
-sputs 'NB: everything in docker containers are ephemeral without volume mounts'
-gets
+run_command('cat arbitrary_ruby_application.rb')
+run_command('docker run -d --name our-first-container our-first-image')
+run_command('docker ps | grep our-first-container')
+run_command('docker logs --tail=20 our-first-container')
+run_command('docker exec -it our-first-container sh')
+sputs 'NB: everything in docker containers is ephemeral unless mounted to a volume'
+continue?
 sputs '- Registries'
-puts '`docker pull ruby:2.7-alpine`'
+run_command('docker pull ruby:2.7-alpine')
 sputs 'Pulls from https://hub.docker.com/'
-puts '`docker push ruby:2.7-alpine`'
+run_command('docker push ruby:2.7-alpine')
 sputs "Probably shouldn't work... well, hopefully it doesn't."
 
 continue?
@@ -124,16 +124,12 @@ puts
 
 draw_box('docker-compose')
 
-sputs '`cat docker-compose.yml`'
-puts
-puts '----- docker-compose.yml -------'
-puts `cat docker-compose.yml`
-puts '----- \docker-compose.yml -------'
-puts
-gets
+run_command('cat docker-compose.yml')
+continue?
 
-puts "`alias dc='docker-compose'`"
-puts "`dc up -d`"
+run_command("alias dc='docker-compose'")
+run_command('dc up -d', '. .env/bin/activate && docker-compose up -d')
+run_command('dc ps', '. .env/bin/activate && docker-compose ps')
 
 continue?
 
@@ -141,16 +137,18 @@ continue?
 draw_box('Setup')
 
 sputs "If you're using Ubuntu:"
-sputs '`sudo apt-get install docker docker-compose`'
+sputs '`sudo apt-get install docker.io docker-compose`'
 sputs "`sudo groupadd docker`"
 sputs "`sudo usermod -aG docker $USER`"
-sputs "Log out and log back in..."
+sputs "Log out and log back in aaaaand..."
+sputs ''
 sputs "Ta-Da!"
-sputs "The Ubuntu docker is co-maintained by the core Docker team as well as cononical."
+sputs ''
+sputs "The Ubuntu docker is co-maintained by the core Docker team as well as canonical, so is trust worthy and generally up to date."
 sputs "..."
-sputs "Any other distribution... welllllll..."
+sputs "As for any other distribution... welllllll..."
 sputs "
-In the wise words of Mohit Gupta: 
+In the wise words of a friend of mine: 
 \"Most distros will have an antiquated version of Docker, avoid it;
 
 Grab it fresh from Docker repos:
@@ -161,79 +159,85 @@ Grab it fresh from Docker repos:
 
 `pip install docker-compose`\"
 "
+continue?
+sputs "The docker-compose available to ubuntu via apt-get can also be a bit dodgy from time to time, so it might be worth tinkering with python virtual envs for docker-compose"
 
 continue?
 
 # Part Five security
 draw_box("Security Best Practices")
 
-sputs '`cat Better-Dockerfile`'
-puts
-puts '----- Better-Dockerfile -------'
-puts `cat Better-Dockerfile`
-puts '----- \Better-Dockerfile -------'
-puts
-gets
 sputs '- Layered Dockerfiles'
 sputs '- Alpine Linux'
 sputs '- Setting the User'
 sputs '- Container Quotas'
-sputs '- Docker Ignore'
 puts
-sputs '`cat Copy-Everything-Dockerfile`'
+run_command('cat Better-Dockerfile')
+continue?
+run_command('docker build . -f Better-Dockerfile -t our-third-image:latest')
+continue?
 puts
-puts '----- Copy-Everything-Dockerfile -------'
-puts `cat Copy-Everything-Dockerfile`
-puts '----- \Copy-Everything-Dockerfile -------'
-puts
-gets
 
+sputs '- Docker Ignore files'
+puts
+run_command('cat Copy-Everything-Dockerfile')
+run_command('cat .dockerignore')
+run_command('ls')
+continue?
+run_command('docker build . -f Copy-Everything-Dockerfile -t our-fourth-image:latest')
+run_command('docker run --rm our-fourth-image:latest ls')
 continue?
 
 # Part 6
 draw_box("Other Interesting Nik Naks")
 
 sputs '- Interacting With Docker Containers'
-sputs '  - `docker attach our-first-container`'
-sputs '  - `docker exec -it our-first-container sh`'
-sputs '  - `dc exec arbruba sh`'
-gets
+sputs 'To attach your terminal to the process run in a docker container: docker attach our-first-container'
+sputs ' - (showing this would break the presentation)'
+run_command('docker exec -it our-first-container sh')
+run_command('dc exec arbruba sh', '. .env/bin/activate && docker-compose exec arbruba sh')
+continue?
 sputs '- Host Networking Mode'
 sputs '  - --network host'
-gets
+continue?
 sputs '- Privelleged Mode'
 sputs '  - "Let Docker do ALL THE THINGS!" mode. Enough permissions to run docker inside docker.'
 sputs '  - docker pull docker:dind'
-gets
+continue?
 sputs '- The Docker Daemon Socket and what the docker cli is doing'
 sputs '  - By default, a root owned unix domain socket (or IPC socket) is created at /var/run/docker.sock'
-gets
+continue?
 sputs '- --user'
-sputs '  - `dc exec --user ruby arbruba sh`'
-sputs '  - `dc exec --user root arbruba sh`'
-gets
-sputs '- copying between host and container'
-sputs '  - `docker cp <container-name>:/data/db /tmp/db`'
+run_command('dc exec --user ruby arbruba whoami', '. .env/bin/activate && docker-compose exec --user ruby arbruba whoami')
+run_command('dc exec --user root arbruba whoami', '. .env/bin/activate && docker-compose exec --user root arbruba whoami')
+continue?
+sputs '- Copying between host and container'
+run_command('touch cpfile')
+run_command('docker cp cpfile our-second-container:/src/app/cpfile')
+run_command('docker exec our-second-container ls')
 sputs '  - Basically works like SCP'
-gets
+continue?
 sputs '- Windows and Docker Machine'
 sputs '  - Never tried it, but apparently not horrible on Windows'
 sputs "  - Mac can't mount unix volumes to it's file system, so a virtualization layer is needed" 
 sputs "    - docker-machine basically runs headless virutal box vms for this, so it's a bit slow." 
-gets
+sputs "      - Apple has apparently made some changes to reduce this impact since I originally wrote this, so your milleage may vary." 
+continue?
 sputs '- Docker Swarm'
 sputs '  - An orchestration protocol built into docker for running docker networks across hosts'
-gets
+continue?
 sputs '- Orchestration'
 sputs "  - Speaking of orchestration, you're probably more likely to have heard of the de facto orchestration protocol for docker containers: Kubernetes"
-gets
+continue?
+sputs '- Clean Out Docker Related Resources'
+run_command('docker system prune --volumes --all')
+run_command('rm cpfile')
 
 draw_box("Thanks")
-gets 
+continue? 
 
 draw_box("Recommended Reading")
 puts
 sputs "Usage: https://github.com/Skybound1/docker-workshop/blob/master/slideshow.html"
 sputs "Exploitation: https://github.com/Skybound1/docker-practice-vm/blob/master/slides.pdf"
 sputs "Just remind me to share these in the chat :)"
-gets 

@@ -1,2 +1,5 @@
-Dockerfile
+*Dockerfile
 docker-compose.yml
+one_oh_what.rb
+docker-hosted-rails
+.env
